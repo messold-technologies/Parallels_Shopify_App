@@ -1,0 +1,36 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "c6c3cc91c26c414a5e858ac4dab8f492"
+application_url = "https://consensus-mass-nurse-following.trycloudflare.com"
+embedded = true
+name = "Parallels X Messold"
+handle = "parallels-x-messold"
+
+[webhooks]
+api_version = "2024-10"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products"
+
+[auth]
+redirect_urls = [
+  "https://consensus-mass-nurse-following.trycloudflare.com/auth/callback",
+  "https://consensus-mass-nurse-following.trycloudflare.com/auth/shopify/callback",
+  "https://consensus-mass-nurse-following.trycloudflare.com/api/auth/callback"
+]
+
+[pos]
+embedded = false
+
+[build]
+dev_store_url = "messoldtech.myshopify.com"
+automatically_update_urls_on_dev = true
