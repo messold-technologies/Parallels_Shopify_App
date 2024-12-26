@@ -1,19 +1,17 @@
-FROM node:18-alpine
-
-RUN apk add --no-cache openssl
+# Build stage
+FROM node:18-alpine AS builder
 WORKDIR /app
-ENV NODE_ENV=production
-
-# Install only production dependencies first
 COPY package*.json ./
 RUN npm ci
-
-# Then install build dependencies temporarily
-RUN npm install -D tailwindcss postcss autoprefixer
-
 COPY . .
-RUN npm run build && \
-    npm prune --production
+RUN npm run build
 
+# Production stage
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/package*.json ./
+RUN npm ci --only=production
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/public ./public
 EXPOSE 3000
-CMD ["npm", "run", "docker-start"]
+CMD ["npm", "run", "start"]
