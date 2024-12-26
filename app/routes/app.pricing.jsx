@@ -137,7 +137,7 @@ export default function PricingPage() {
 
   return (
     <Page fullWidth>
-      <BlockStack>
+      <BlockStack gap="400">
         <Box padding={200}>
           <BlockStack gap="400" align="center">
             <Text variant="headingXl" as="h1" alignment="center">
