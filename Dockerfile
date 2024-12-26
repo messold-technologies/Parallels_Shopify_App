@@ -13,17 +13,11 @@ ENV NODE_ENV=production
 # Copy only package files to leverage Docker's layer caching
 COPY package.json package-lock.json* ./
 
-# Install only production dependencies and clean up cache
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Remove Shopify CLI packages (if you really don't need them in production)
-RUN npm remove @shopify/cli
+# Install all dependencies (including TailwindCSS and PostCSS if needed)
+RUN npm ci && npm cache clean --force
 
 # Copy the rest of the application code
 COPY . .
-
-# **Install TailwindCSS and PostCSS Dependencies** in the production build if needed
-RUN npm install tailwindcss postcss autoprefixer --omit=dev
 
 # Build the application
 RUN npm run build
