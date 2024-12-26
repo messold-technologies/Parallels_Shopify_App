@@ -43,6 +43,8 @@
   "devDependencies": {
     "@remix-run/eslint-config": "^2.7.1",
     "@remix-run/route-config": "^2.15.0",
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.0",
     "@shopify/api-codegen-preset": "^1.1.1",
     "@types/eslint": "^8.40.0",
     "@types/node": "^22.2.0",
@@ -53,6 +55,7 @@
     "eslint-config-prettier": "^9.1.0",
     "postcss": "^8.4.49",
     "prettier": "^3.2.4",
+    "rollup": "^4.29.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.2.2",
     "vite": "^5.1.3"
