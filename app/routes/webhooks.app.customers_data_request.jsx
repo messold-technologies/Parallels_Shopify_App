@@ -1,11 +1,15 @@
-import { authenticate } from "../shopify.server";
-
 export const action = async ({ request }) => {
   try {
+    // Log request headers and body
+    console.log("Request headers:", Object.fromEntries(request.headers.entries()));
+    const body = await request.text();
+    console.log("Request body:", body);
+
     const { payload, admin } = await authenticate.webhook(request);
 
-    if(!admin){
-      throw new Response();
+    if (!admin) {
+      console.error("Admin validation failed.");
+      throw new Error("Unauthorized");
     }
 
     // Extract data
@@ -19,6 +23,6 @@ export const action = async ({ request }) => {
     return new Response("Webhook processed successfully", { status: 200 });
   } catch (error) {
     console.error("Error processing webhook:", error);
-    return new Response(error.message, { status: 401 });
+    return new Response(error.message || "Unauthorized", { status: 401 });
   }
-}
+};
