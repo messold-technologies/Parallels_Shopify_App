@@ -2,20 +2,8 @@ import { authenticate } from "../shopify.server";
 
 export const action = async ({ request }) => {
   try {
-    // Clone the request body to avoid consuming it multiple times
-    const clonedRequest = new Request(request.url, {
-      method: request.method,
-      headers: request.headers,
-      body: await request.text(),
-    });
-
-    // Pass the cloned request to authenticate.webhook
-    const { payload, admin } = await authenticate.webhook(clonedRequest);
-
-    if (!admin) {
-      console.error("Admin validation failed.");
-      throw new Error("Unauthorized");
-    }
+ // Pass the cloned request to authenticate.webhook
+    const { payload } = await authenticate.webhook(request);
 
     // Extract data from payload
     const ordersRequested = payload.orders_requested || [];
