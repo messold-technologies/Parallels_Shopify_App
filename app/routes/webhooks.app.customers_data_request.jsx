@@ -1,3 +1,5 @@
+import { authenticate } from "../shopify.server";
+
 export const action = async ({ request }) => {
   try {
     // Log request headers and body
