@@ -9,7 +9,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/shopify_app
       - NODE_ENV=production
       # Shopify App Variables
-      - SHOPIFY_APP_URL=https://localhost:3000
+      - SHOPIFY_APP_URL=https://parallelsshopifyapp-production.up.railway.app/
       - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
       - SHOPIFY_API_SECRET=${SHOPIFY_API_SECRET}
       - SCOPES=${SCOPES}
