@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "c6c3cc91c26c414a5e858ac4dab8f492"
-application_url = "https://simple-mixing-wall-owen.trycloudflare.com"
+application_url = "https://casting-street-owns-belts.trycloudflare.com"
 embedded = true
 name = "Parallels X Messold"
 handle = "parallels-x-messold"
@@ -29,16 +29,15 @@ api_version = "2024-10"
   topics = [ "shop/redact" ]
   uri = "/webhooks/app/scopes_update"
 
-
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_analytics, write_returns, read_returns, write_orders, read_orders, write_customers, read_customers, write_products, read_products"
 
 [auth]
 redirect_urls = [
-  "https://simple-mixing-wall-owen.trycloudflare.com/auth/callback",
-  "https://simple-mixing-wall-owen.trycloudflare.com/auth/shopify/callback",
-  "https://simple-mixing-wall-owen.trycloudflare.com/api/auth/callback"
+  "https://casting-street-owns-belts.trycloudflare.com/auth/callback",
+  "https://casting-street-owns-belts.trycloudflare.com/auth/shopify/callback",
+  "https://casting-street-owns-belts.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
