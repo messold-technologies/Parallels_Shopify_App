@@ -2,12 +2,7 @@ import { authenticate } from "../shopify.server";
 
 export const action = async ({ request }) => {
   try {
-    const { payload, admin } = await authenticate.webhook(request);
-
-    if(!admin){
-      throw new Response();
-    }
-
+    const { payload} = await authenticate.webhook(request);
     // Extract data
     const ordersRedacted = payload.orders_to_redact;
     const customerEmail = payload.customer.email;
