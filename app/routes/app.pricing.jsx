@@ -3,6 +3,7 @@ import { redirect } from "@remix-run/node";
 import { Page, Layout, Text, BlockStack, Box, CalloutCard, Button, List } from "@shopify/polaris";
 import { Check, Sparkles } from "lucide-react";
 import { authenticate } from "../shopify.server";
+import { updateSubscription } from "../subscription.server";
 
 
 export const PLAN_FREE = "FREE";
@@ -58,35 +59,88 @@ export async function loader({ request }) {
   try {
     const url = new URL(request.url);
     const status = url.searchParams.get("status");
+    const chargeId = url.searchParams.get("charge_id");
+
+    // Get authentication context
+    const authResponse = await authenticate.admin(request);
     
-    const auth = await authenticate.admin(request);
+    if (!authResponse?.session) {
+      throw new Error("Authentication failed - no session available");
+    }
 
-    const { billing, session } = auth;
+    const { billing, session } = authResponse;
 
+    // Handle callback flow if charge_id is present
+    if (chargeId) {
+      try {
+        const subscriptionStatus = await billing.check({
+          subscriptionId: chargeId,
+          isTest: true,
+        });
+
+        if (subscriptionStatus?.appSubscriptions?.[0]) {
+          const subscription = subscriptionStatus.appSubscriptions[0];
+          
+          await updateSubscription({
+            session,
+            subscriptionDetails: {
+              id: subscription.id,
+              planName: subscription.name,
+              currentPeriodEnd: subscription.currentPeriodEnd || new Date(),
+            },
+          });
+
+          // Instead of redirecting, return success state
+          return {
+            billing,
+            plan: subscription,
+            status: "success",
+            error: null,
+          };
+        }
+      } catch (error) {
+        console.error("Subscription validation error:", error);
+        return {
+          billing: null,
+          plan: { name: PLAN_FREE, status: "ACTIVE" },
+          error: error.message,
+          status: "error",
+        };
+      }
+    }
+
+    // Regular pricing page flow
     if (!billing) {
       console.error("Billing object not available");
-      throw new Error("Billing authentication failed");
+      return {
+        billing: null,
+        plan: { name: PLAN_FREE, status: "ACTIVE" },
+        error: "Billing authentication failed",
+        status: "error",
+      };
     }
 
     const billingCheck = await billing.require({
       plans: [PLAN_FREE, PLAN_STARTUP, PLAN_GROWTH],
       isTest: true,
       onFailure: async () => {
-        console.error("Billing requirement failed");
         return { plan: { name: PLAN_FREE, status: "ACTIVE" } };
       },
     });
-
 
     const subscription = billingCheck?.appSubscriptions?.[0];
 
     return {
       billing,
       plan: subscription || { name: PLAN_FREE, status: "ACTIVE" },
-      status,
+      status: status || "active",
+      error: null,
     };
+
   } catch (error) {
-    console.error("Pricing page loader error:", error);
+    console.error("Pricing page error:", error);
+    
+
 
     return {
       billing: null,
@@ -97,24 +151,30 @@ export async function loader({ request }) {
   }
 }
 
-
-
-
-
-// Action to handle plan subscription and redirection
 export async function action({ request }) {
-  const { billing, session } = await authenticate.admin(request);
-  let { shop } = session;
-  let myShop = shop.replace(".myshopify.com", "");
-  const formData = await request.formData();
-  const planId = formData.get("planId");
-  const response = await billing.request({
-    plan: planId,
-    isTest: true,
-    returnUrl: `https://admin.shopify.com/store/${myShop}/apps/${process.env.APP_NAME}/app/pricingCallback`,
-  });
+    const { billing, session } = await authenticate.admin(request);
+    
+    if (!session) {
+      throw new Error("No session available");
+    }
 
-  return redirect(response.confirmationUrl);
+    let { shop } = session;
+    let myShop = shop.replace(".myshopify.com", "");
+    const formData = await request.formData();
+    const planId = formData.get("planId");
+
+    if (!billing) {
+      throw new Error("Billing not available");
+    }
+
+    const response = await billing.request({
+      plan: planId,
+      isTest: true,
+      // Update returnUrl to point to the same route
+      returnUrl: `https://admin.shopify.com/store/${myShop}/apps/${process.env.APP_NAME}/app/pricing`,
+    });
+
+    return redirect(response.confirmationUrl);
 }
 
 // Pricing Page Component

@@ -25,39 +25,39 @@ export async function loader({ request }) {
       return redirect("/app/pricing?status=error&message=missing_charge_id");
     }
 
-    const subscriptionStatus = await billing.check({
-      subscriptionId: chargeId,
-      isTest: true,
-    });
+    try {
+      const subscriptionStatus = await billing.check({
+        subscriptionId: chargeId,
+        isTest: true,
+      });
 
-    if (!subscriptionStatus?.appSubscriptions?.length) {
-      throw new Error("Invalid subscription response");
+      if (!subscriptionStatus?.appSubscriptions?.[0]) {
+        throw new Error("Invalid subscription response");
+      }
+
+      const subscription = subscriptionStatus.appSubscriptions[0];
+      console.log("Subscription details:", subscription);
+
+      const subscriptionDetails = {
+        id: subscription.id,
+        planName: subscription.name,
+        currentPeriodEnd: subscription.currentPeriodEnd || new Date(),
+      };
+
+      const result = await updateSubscription({
+        session,
+        subscriptionDetails,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update subscription");
+      }
+
+      return redirect("/app/pricing?status=success");
+    } catch (error) {
+      console.error("Subscription validation error:", error);
+      return redirect(`/app/pricing?status=error&message=${encodeURIComponent(error.message)}`);
     }
-
-    const { appSubscriptions } = subscriptionStatus;
-    console.log(appSubscriptions)
-    const planName = appSubscriptions[0].name;
-
-    if (!planName) {
-      throw new Error("Could not determine plan name");
-    }
-
-    const subscriptionDetails = {
-      id: appSubscriptions[0].id,
-      planName,
-      currentPeriodEnd: new Date(),
-    };
-
-    const result = await updateSubscription({
-      session,
-      subscriptionDetails,
-    });
-
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-
-    return redirect("/app/pricing?status=success");
   } catch (error) {
     console.error("Subscription callback error:", {
       message: error.message,
@@ -65,7 +65,6 @@ export async function loader({ request }) {
       url: request.url,
     });
 
-    // For other errors, redirect to pricing with error message
     return redirect(`/app/pricing?status=error&message=${encodeURIComponent(error.message)}`);
   }
 }
