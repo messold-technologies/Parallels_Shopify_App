@@ -169,7 +169,7 @@ export async function action({ request }) {
 
     const response = await billing.request({
       plan: planId,
-      isTest: true,
+      isTest: process.env.NODE_ENV !== "production",
       // Update returnUrl to point to the same route
       returnUrl: `https://admin.shopify.com/store/${myShop}/apps/${process.env.APP_NAME}/app/pricing`,
     });
