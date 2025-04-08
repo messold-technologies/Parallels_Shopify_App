@@ -21,17 +21,23 @@ export default function App() {
       <div className={styles.content}>
         <h1 className={styles.heading}>Parallels</h1>
         <p className={styles.text}>
-        Your Marketing Analytics Command Center
+          Your Marketing Analytics Command Center
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
             <label className={styles.label}>
-              <span>Shop domain</span>
-              <input className={styles.input} type="text" name="shop" />
+              <span>Shop Domain</span>
+              <input 
+                className={styles.input} 
+                type="text" 
+                name="shop" 
+                placeholder="Enter your shop domain"
+                required
+              />
               <span>e.g: my-shop-domain.myshopify.com</span>
             </label>
             <button className={styles.button} type="submit">
-              Log in
+              Get Started
             </button>
           </Form>
         )}
