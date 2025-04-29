@@ -80,6 +80,7 @@ export default defineConfig({
       'process.env.SHOPIFY_API_SECRET': JSON.stringify(process.env.SHOPIFY_API_SECRET),
       'process.env.SCOPES': JSON.stringify(process.env.SCOPES),
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      'process.env.APP_NAME': JSON.stringify(process.env.APP_NAME),
       'global': {},
     },
 });

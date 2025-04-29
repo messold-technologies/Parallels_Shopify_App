@@ -10,6 +10,11 @@ import prisma from "./db.server";
 import axios from "axios";
 
 
+console.log("🚀 ENV CHECK");
+console.log("SHOPIFY_API_KEY:", process.env.SHOPIFY_API_KEY);
+console.log("SHOPIFY_API_SECRET:", process.env.SHOPIFY_API_SECRET);
+console.log("SCOPES:", process.env.SCOPES);
+console.log("SHOPIFY_APP_URL:", process.env.SHOPIFY_APP_URL);
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
