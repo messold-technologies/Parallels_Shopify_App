@@ -44,7 +44,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwindcss": "^3.4.17",
-    "vite-tsconfig-paths": "^5.0.1"
+    "vite-tsconfig-paths": "^5.0.1",
+    "rollup-plugin-polyfill-node": "^0.13.0"
   },
   "devDependencies": {
     "@remix-run/eslint-config": "^2.7.1",
@@ -68,7 +69,6 @@
     "prettier": "^3.2.4",
     "process": "^0.11.10",
     "rollup": "^4.29.1",
-    "rollup-plugin-polyfill-node": "^0.13.0",
     "stream-http": "^3.2.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.2.2",
