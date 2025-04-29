@@ -6,19 +6,21 @@ RUN apk add --no-cache openssl
 # Set working directory
 WORKDIR /app
 
-# Set environment
-ENV NODE_ENV=production
-
 # Copy dependency files first to optimize cache
 COPY package.json package-lock.json* ./
 
-# Install all dependencies (tailwindcss must be in dependencies)
-RUN npm ci
+# ⛔ Temporarily unset NODE_ENV to install all deps
+# Set environment (moved AFTER npm install)
+# COPY and install ALL dependencies
+RUN npm ci --include=dev
+
+# Set environment (now it's safe)
+ENV NODE_ENV=production
 
 # Copy rest of the application
 COPY . .
 
-# Build the app (needs tailwind, postcss, etc.)
+# Build the app
 RUN npm run build
 
 # Prune dev dependencies AFTER build
