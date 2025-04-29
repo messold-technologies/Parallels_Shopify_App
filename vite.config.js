@@ -74,8 +74,12 @@ export default defineConfig({
       ],
     }
   },
-  define: {
-    'process.env': {},
-    'global': {},
-  },
+    define: {
+      'process.env.SHOPIFY_APP_URL': JSON.stringify(process.env.SHOPIFY_APP_URL || "http://localhost:3000"),
+      'process.env.SHOPIFY_API_KEY': JSON.stringify(process.env.SHOPIFY_API_KEY),
+      'process.env.SHOPIFY_API_SECRET': JSON.stringify(process.env.SHOPIFY_API_SECRET),
+      'process.env.SCOPES': JSON.stringify(process.env.SCOPES),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      'global': {},
+    },
 });
