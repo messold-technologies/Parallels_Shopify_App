@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { Page, Layout, Text, BlockStack, Box, Banner } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 
