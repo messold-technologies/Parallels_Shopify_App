@@ -53,6 +53,7 @@ export default function Auth() {
                 onChange={setShop}
                 autoComplete="on"
                 error={errors.shop}
+                required
               />
               <Button submit>Log in</Button>
             </FormLayout>

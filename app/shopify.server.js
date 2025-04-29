@@ -7,6 +7,9 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import axios from "axios";
+import { redirect } from "@remix-run/node";
+
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -24,14 +27,19 @@ const shopify = shopifyApp({
   },
   hooks: {
     afterAuth: async ({ session }) => {
+      console.log("afterAuth hook triggered");
+      
       shopify.registerWebhooks({ session });
+      
+      console.log("Upserting shop...");
+      await upsertShop(session);
     },
   },
   billing: {
     FREE: {
       amount: 0.0,
       currencyCode: "USD",
-      interval:BillingInterval.Every30Days,
+      interval: BillingInterval.Every30Days,
       test: process.env.NODE_ENV !== "production",
     },
     STARTUP: {
@@ -49,8 +57,6 @@ const shopify = shopifyApp({
   },
 });
 
-
-
 export const apiVersion = ApiVersion.October24;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
@@ -59,27 +65,121 @@ export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;
 export const sessionStorage = shopify.sessionStorage;
 
-
+// Save shop data to Prisma database
 export async function upsertShop(session) {
   const shopDomain = session.shop; 
   const accessToken = session.accessToken;
 
-  const existingShop = await prisma.shop.findUnique({
-    where: { shopDomain },
-  });
-
-  if (existingShop) {
-    await prisma.shop.update({
+  try {
+    const existingShop = await prisma.shop.findUnique({
       where: { shopDomain },
-      data: { accessToken },
     });
-  } else {
-    await prisma.shop.create({
-      data: {
-        shopDomain,
-        accessToken,
-        planName: "Free", 
-      },
-    });
+
+    if (existingShop) {
+      return await prisma.shop.update({
+        where: { shopDomain },
+        data: { 
+          accessToken,
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      return await prisma.shop.create({
+        data: {
+          shopDomain,
+          accessToken,
+          planName: "FREE", 
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error upserting shop data:", error);
+    throw error;
   }
 }
+
+export async function syncWithExternalApp(session) {
+  try {
+    const shopDomain = session.shop;
+    const accessToken = session.accessToken;
+    const shopName = shopDomain.split('.')[0];
+
+    console.log("Preparing to sync with external app");
+    let userData = null;
+    
+    try {
+      const shopData = await getShopOwnerInfo(session);
+      if (shopData?.shop) {
+        userData = {
+          name: shopData.shop.name || shopName,
+          email: shopData.shop.email
+        };
+        console.log("Retrieved shop owner data:", userData);
+      }
+    } catch (shopDataError) {
+      console.error("Failed to get shop owner info:", shopDataError);
+    }
+    
+    const payload = {
+      shopName,
+      shopifyDomain: shopDomain,
+      shopifyAccessToken: accessToken,
+    };
+
+    if (userData) {
+      if (userData.name) payload.ownerName = userData.name;
+      if (userData.email) payload.ownerEmail = userData.email;
+    }
+
+    const response = await axios.post(
+      `${process.env.EXTERNAL_API_URL}/app/sync-shopify-store`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.EXTERNAL_APP_API_KEY}`
+        },
+        timeout: 10000 // Add timeout for the request
+      }
+    );
+
+    console.log("External app sync response status:", response.status);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to sync with external app:", error.message);
+    if (error.response) {
+      console.error("Error response data:", error.response.data);
+      console.error("Error response status:", error.response.status);
+    } else if (error.request) {
+      console.error("No response received, request was:", error.request.method, error.request.path);
+    }
+    return { 
+      error: error.message || "Failed to sync with external app",
+      success: false
+    };
+  }
+}
+
+async function getShopOwnerInfo(session) {
+  try {
+    // Use the admin graphql client
+    const response = await shopify.api.admin.graphql({
+      session,
+      data: `{
+        shop {
+          name
+          email
+          myshopifyDomain
+        }
+      }`
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching shop information:", error);
+    return null;
+  }
+}
+
+
+export default shopify;
