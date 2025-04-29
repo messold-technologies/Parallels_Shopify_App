@@ -1,48 +1,49 @@
 FROM node:18-alpine AS builder
 
-# Install prisma dependencies
-RUN apk add --no-cache openssl
+# Install necessary build dependencies
+RUN apk add --no-cache openssl libc6-compat
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+# Copy package files first for better caching
+COPY package.json package-lock.json* ./
 
-# Install dependencies
+# Install dependencies with explicit environment
+ENV NODE_ENV=development
 RUN npm ci
 
-# Copy rest of the application
+# Copy all application files
 COPY . .
 
-# Generate Prisma Client
+# Generate Prisma Client before build
+ENV DATABASE_URL="dummy_url_for_prisma_generate"
 RUN npx prisma generate
 
-# Build the application
-RUN npm run build
+# Add verbose logging for build step
+RUN npm run build || (echo "Build failed!" && npm run build --verbose && exit 1)
 
 # Production stage
-FROM node:18-alpine
+FROM node:18-alpine AS production
 
-# Install necessary production dependencies
-RUN apk add --no-cache openssl
+# Install runtime dependencies
+RUN apk add --no-cache openssl libc6-compat
 
 WORKDIR /app
 
-# Copy necessary files from builder
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
+# Set environment to production
+ENV NODE_ENV=production
+
+# Copy necessary files and directories from build stage
+COPY --from=builder /app/package.json /app/package-lock.json* ./
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules ./node_modules
 
-# Install production dependencies
-RUN npm ci --only=production
-
-# Generate Prisma Client in production
+# Generate Prisma Client for production
 RUN npx prisma generate
 
 EXPOSE 3000
 
+# Command to run the application
 CMD ["npm", "run", "start"]
