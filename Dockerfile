@@ -16,11 +16,38 @@ RUN npm ci
 COPY . .
 
 # Generate Prisma Client before build
-ENV DATABASE_URL="dummy_url_for_prisma_generate"
+ENV DATABASE_URL="file:./dev.db"
 RUN npx prisma generate
 
-# Add verbose logging for build step
-RUN npm run build || (echo "Build failed!" && npm run build --verbose && exit 1)
+# Add Vite configuration for Node.js polyfills
+RUN echo 'import { defineConfig } from "vite";\n\
+export default defineConfig({\n\
+  resolve: {\n\
+    alias: {\n\
+      crypto: "crypto-browserify",\n\
+      stream: "stream-browserify",\n\
+      assert: "assert",\n\
+      http: "stream-http",\n\
+      https: "https-browserify",\n\
+      os: "os-browserify",\n\
+      url: "url",\n\
+    },\n\
+  },\n\
+  optimizeDeps: {\n\
+    esbuildOptions: {\n\
+      define: {\n\
+        global: "globalThis",\n\
+      },\n\
+    },\n\
+  },\n\
+});' > vite.config.js
+
+# Install necessary polyfills
+RUN npm install --save-dev crypto-browserify stream-browserify assert \
+    stream-http https-browserify os-browserify url buffer process
+
+# Run the build with Node.js compatibility flag
+RUN NODE_OPTIONS=--no-warnings npm run build
 
 # Production stage
 FROM node:18-alpine AS production
@@ -33,12 +60,16 @@ WORKDIR /app
 # Set environment to production
 ENV NODE_ENV=production
 
-# Copy necessary files and directories from build stage
+# Copy package files
 COPY --from=builder /app/package.json /app/package-lock.json* ./
+COPY --from=builder /app/prisma ./prisma
+
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Copy build output and necessary files
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules ./node_modules
 
 # Generate Prisma Client for production
 RUN npx prisma generate
