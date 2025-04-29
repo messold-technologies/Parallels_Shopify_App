@@ -8,7 +8,7 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 import axios from "axios";
-import { redirect } from "@remix-run/node";
+
 
 
 const shopify = shopifyApp({

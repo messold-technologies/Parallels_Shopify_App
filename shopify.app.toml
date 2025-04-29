@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "c6c3cc91c26c414a5e858ac4dab8f492"
-application_url = "https://popularity-spain-philosophy-thinkpad.trycloudflare.com"
+application_url = "https://node-two-sensitivity-driven.trycloudflare.com"
 embedded = true
 name = "Parallels X Messold"
 handle = "parallels-x-messold"
@@ -35,9 +35,9 @@ scopes = "read_analytics, write_returns, read_returns, write_orders, read_orders
 
 [auth]
 redirect_urls = [
-  "https://popularity-spain-philosophy-thinkpad.trycloudflare.com/auth/callback",
-  "https://popularity-spain-philosophy-thinkpad.trycloudflare.com/auth/shopify/callback",
-  "https://popularity-spain-philosophy-thinkpad.trycloudflare.com/api/auth/callback"
+  "https://node-two-sensitivity-driven.trycloudflare.com/auth/callback",
+  "https://node-two-sensitivity-driven.trycloudflare.com/auth/shopify/callback",
+  "https://node-two-sensitivity-driven.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
