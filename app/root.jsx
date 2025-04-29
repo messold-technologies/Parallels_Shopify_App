@@ -4,20 +4,43 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
-
+import pkg from "@shopify/polaris";
+const { PolarisAppProvider } = pkg;
+import { AppProvider } from "@shopify/shopify-app-remix/react";
+import { json } from "@remix-run/node";
 import stylesheet from "./tailwind.css?url";
 
 export const links = () => [
   { rel: "stylesheet", href: stylesheet },
+  {
+    rel: "preload",
+    href: "https://cdn.shopify.com/shopifycloud/app-bridge.js",
+    as: "script",
+  },
 ];
 
+export async function loader() {
+  return json({
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    appBridgeConfig: {
+      apiKey: process.env.SHOPIFY_API_KEY || "",
+      host: new URL(process.env.SHOPIFY_APP_URL || "").host,
+      forceRedirect: true
+    }
+  });
+}
+
 export default function App() {
+  const { apiKey, appBridgeConfig } = useLoaderData();
+
   return (
     <html>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta httpEquiv="Content-Security-Policy" content="frame-ancestors https://*.myshopify.com https://*.shopify.com https://*.shopifycloud.com;" />
         <link rel="preconnect" href="https://cdn.shopify.com/" />
         <link
           rel="stylesheet"
@@ -27,7 +50,15 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Outlet />
+        <AppProvider
+          isEmbeddedApp
+          apiKey={apiKey}
+          config={appBridgeConfig}
+        >
+          <PolarisAppProvider>
+            <Outlet />
+          </PolarisAppProvider>
+        </AppProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
