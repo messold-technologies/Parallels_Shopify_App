@@ -6,10 +6,10 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from "@remix-run/react";
-import pkg from "@shopify/polaris";
-const { PolarisAppProvider } = pkg;
-import { AppProvider } from "@shopify/shopify-app-remix/react";
+import { AppProvider } from "@shopify/polaris";
+import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-remix/react";
 import { json } from "@remix-run/node";
+import { Provider as AppBridgeProvider } from "@shopify/app-bridge-react";
 import stylesheet from "./tailwind.css?url";
 
 export const links = () => [
@@ -27,8 +27,8 @@ export async function loader() {
     appBridgeConfig: {
       apiKey: process.env.SHOPIFY_API_KEY || "",
       host: new URL(process.env.SHOPIFY_APP_URL || "").host,
-      forceRedirect: true
-    }
+      forceRedirect: true,
+    },
   });
 }
 
@@ -40,7 +40,10 @@ export default function App() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <meta httpEquiv="Content-Security-Policy" content="frame-ancestors https://*.myshopify.com https://*.shopify.com https://*.shopifycloud.com;" />
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content="frame-ancestors https://*.myshopify.com https://*.shopify.com https://*.shopifycloud.com;"
+        />
         <link rel="preconnect" href="https://cdn.shopify.com/" />
         <link
           rel="stylesheet"
@@ -50,15 +53,13 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <AppProvider
-          isEmbeddedApp
-          apiKey={apiKey}
-          config={appBridgeConfig}
-        >
-          <PolarisAppProvider>
-            <Outlet />
-          </PolarisAppProvider>
-        </AppProvider>
+        <ShopifyAppProvider isEmbeddedApp apiKey={apiKey} config={appBridgeConfig}>
+          <AppBridgeProvider config={appBridgeConfig}>
+            <AppProvider i18n={{}}>
+              <Outlet />
+            </AppProvider>
+          </AppBridgeProvider>
+        </ShopifyAppProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

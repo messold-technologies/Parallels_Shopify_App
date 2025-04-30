@@ -7,8 +7,6 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-import axios from "axios";
-
 
 console.log("🚀 ENV CHECK");
 console.log("SHOPIFY_API_KEY:", process.env.SHOPIFY_API_KEY);
@@ -31,13 +29,25 @@ const shopify = shopifyApp({
     removeRest: true,
   },
   hooks: {
-    afterAuth: async ({ session }) => {
+    afterAuth: async ({ session, request, admin, redirect }) => {
       console.log("afterAuth hook triggered");
       
       shopify.registerWebhooks({ session });
       
       console.log("Upserting shop...");
       await upsertShop(session);
+      
+      // Sync with external app and get user info
+      console.log("Syncing with external app...");
+      const syncResponse = await syncWithExternalApp(session);
+      
+      if (syncResponse && syncResponse.userId && syncResponse.token) {
+
+        return redirect(`/redirect?userId=${syncResponse.userId}&token=${syncResponse.token}`);
+
+      }
+
+      return;
     },
   },
   billing: {
@@ -185,6 +195,5 @@ async function getShopOwnerInfo(session) {
     return null;
   }
 }
-
 
 export default shopify;
