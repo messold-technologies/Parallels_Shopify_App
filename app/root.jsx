@@ -9,7 +9,6 @@ import {
 import { AppProvider } from "@shopify/polaris";
 import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-remix/react";
 import { json } from "@remix-run/node";
-import { Provider as AppBridgeProvider } from "@shopify/app-bridge-react";
 import stylesheet from "./tailwind.css?url";
 
 export const links = () => [
@@ -39,7 +38,8 @@ export default function App() {
     <html>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />/
+       
         <meta
           httpEquiv="Content-Security-Policy"
           content="frame-ancestors https://*.myshopify.com https://*.shopify.com https://*.shopifycloud.com;"
@@ -51,14 +51,13 @@ export default function App() {
         />
         <Meta />
         <Links />
+        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
       </head>
       <body>
         <ShopifyAppProvider isEmbeddedApp apiKey={apiKey} config={appBridgeConfig}>
-          <AppBridgeProvider config={appBridgeConfig}>
             <AppProvider i18n={{}}>
               <Outlet />
             </AppProvider>
-          </AppBridgeProvider>
         </ShopifyAppProvider>
         <ScrollRestoration />
         <Scripts />

@@ -7,6 +7,7 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import axios from "axios";
 
 console.log("🚀 ENV CHECK");
 console.log("SHOPIFY_API_KEY:", process.env.SHOPIFY_API_KEY);
